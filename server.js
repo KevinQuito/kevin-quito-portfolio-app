@@ -24,10 +24,28 @@ app.get("/", function (req, res) {
 app.get("/api/hello", function (req, res) {
   res.json({greeting: 'hello API'});
 });
+
+app.get("/api/", function(req, res){
+  var now = new Date();
+  res.json({
+    "unix" : now.getTime(),
+    "utc" : now.toUTCString()
+  });
+});
+
 // The api endpoint is GET [project_url]/api/timestamp/:date_string
 app.get("/api/:date_string", function(req, res){
-  console.log(req);
-  res.json({"error" : "Invalid Date" });
+  console.log(req); // shows all the data in a big json object including params
+
+  let dateString = req.params.date_string;
+  let passedInValue = new Date(dateString);
+  if(passedInValue == "Invalid Date"){
+    res.json({"error" : "Invalid Date" });
+  }else{
+    res.json({"unix" : passedInValue.getTime(),
+              "utc" : passedInValue.toUTCString()
+            });
+  }
 });
 
 
