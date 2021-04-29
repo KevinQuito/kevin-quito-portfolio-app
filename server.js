@@ -41,6 +41,15 @@ app.get("/api/", function(req, res){
   });
 });
 
+app.get("/api/whoami", function(req, res){
+  res.json({
+    // "value": Object.keys(req),
+    "ipaddress": req.ip, // gets ip address from node request
+    "language": req.headers["accept-language"], // gets the language from a user via node
+    "software": req.headers["user-agent"] // gets the software from the user
+    // "req-inspection": req.headers // gives all the information needed from the user
+  });
+});
 // The api endpoint is GET [project_url]/api/timestamp/:date_string
 app.get("/api/:date_string", function(req, res){
   console.log(req); // shows all the data in a big json object including params
