@@ -133,7 +133,7 @@ app.get("/api/shorturl/:suffix", (req, res) => {
       if(urlForRedirect.original_url.includes("http")){
         res.redirect(urlForRedirect.original_url);
       }else{
-        res.redirect("https://" + urlForRedirect.original_url);
+        res.json({ error: 'invalid url' });
       }
     });
   });
