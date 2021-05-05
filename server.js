@@ -126,10 +126,16 @@ app.post("/api/shorturl/", (req,res) => {
 });
 app.get("/api/shorturl/:suffix", (req, res) => {
     let userGeneratedSuffix = req.params.suffix;
+
     ShortURL.find({suffix: userGeneratedSuffix}).then((foundUrls) => {
       let urlForRedirect = foundUrls[0];
       console.log(urlForRedirect);
-      res.redirect(urlForRedirect.original_url);
+      console.log(req.secure);
+      if(req.secure === false){
+        res.redirect("https://" + urlForRedirect.original_url);
+      }else{
+        res.redirect(urlForRedirect.original_url);
+      }
     });
   });
 // listen for requests :)
