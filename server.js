@@ -1,4 +1,3 @@
-var database_uri = 'mongodb+srv://KevinQuito:chipmunk1@cluster0.laogv.mongodb.net/Cluster0?retryWrites=true&w=majority'
 
 // server.js
 // where your node app starts
