@@ -1,3 +1,4 @@
+var database_uri = 'mongodb+srv://KevinQuito:chipmunk1@cluster0.laogv.mongodb.net/Cluster0?retryWrites=true&w=majority'
 
 // server.js
 // where your node app starts
@@ -11,7 +12,7 @@ var shortid = require('shortid');
 var app = express();
 var port = process.env.PORT || 3000;
 // database for production app
-//mongoose.connect(process.env.DB_URI);
+//  mongoose.connect(process.env.DB_URI);
 // database for local app
   mongoose.connect(database_uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
@@ -124,16 +125,15 @@ app.post("/api/shorturl/", (req,res) => {
   });
 });
 app.get("/api/shorturl/:suffix", (req, res) => {
+
     let userGeneratedSuffix = req.params.suffix;
 
     ShortURL.find({suffix: userGeneratedSuffix}).then((foundUrls) => {
       let urlForRedirect = foundUrls[0];
-      console.log(urlForRedirect);
-      console.log(req.secure);
-      if(req.secure === false){
-        res.redirect("https://" + urlForRedirect.original_url);
-      }else{
+      if(urlForRedirect.original_url.includes("http")){
         res.redirect(urlForRedirect.original_url);
+      }else{
+        res.redirect("https://" + urlForRedirect.original_url);
       }
     });
   });
