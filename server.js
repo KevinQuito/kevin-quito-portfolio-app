@@ -105,10 +105,14 @@ app.use(bodyParser.json());
 // create user in req.body
 //})
 app.post("/api/shorturl/", (req,res) => {
-
+  console.log(req.body);
+  if(!req.body.url.includes('http')){
+    console.log("error");
+      res.json({ error: 'invalid url' });
+      return;
+  }
   let client_requested_url = req.body.url;
   let suffix = shortid.generate();
-  let newShortURL = suffix;
 
   let newURL = new ShortURL({
     short_url: __dirname + "/api/shorturl/" + suffix,
@@ -128,13 +132,9 @@ app.get("/api/shorturl/:suffix", (req, res) => {
 
     let userGeneratedSuffix = req.params.suffix;
 
-    ShortURL.find({suffix: userGeneratedSuffix}).then((foundUrls) => {
+    ShortURL.find({suffix: userGeneratedSuffix}).then(foundUrls => {
       let urlForRedirect = foundUrls[0];
-      if(urlForRedirect.original_url.includes("http")){
         res.redirect(urlForRedirect.original_url);
-      }else{
-        res.json({ error: 'invalid url' });
-      }
     });
   });
 // listen for requests :)
