@@ -13,7 +13,7 @@ var port = process.env.PORT || 3000;
 //  mongoose.connect(process.env.DB_URI);
 // database for local app
 /* Database Connection */
-database_uri = 'mongodb+srv://KevinQuito:<password>@cluster0.laogv.mongodb.net/dbname?retryWrites=true&w=majority'
+database_uri = 'mongodb+srv://KevinQuito:chipmunk1@cluster0.laogv.mongodb.net/Cluster0?retryWrites=true&w=majority'
   mongoose.connect(database_uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
 // enable CORS (https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
@@ -112,8 +112,6 @@ app.post("/api/shorturl/", (req,res) => {
       return;
   }
   let client_requested_url = req.body.url;
-  // const httpRegex = /^(http|https)(:\/\/)/;
-  // if (!httpRegex.test(client_requested_url)) {return res.json({ error: 'invalid url' })}
   const myURL = new URL(client_requested_url);
 console.log(myURL.protocol);
   let protocol = myURL.protocol;
@@ -138,14 +136,10 @@ console.log(myURL.protocol);
 });
 app.get("/api/shorturl/:suffix", (req, res) => {
     let userGeneratedSuffix = req.params.suffix;
-    console.log("userGeneratedSuffix");
     ShortURL.find({suffix: userGeneratedSuffix}).then(foundUrls => {
-      console.log(foundUrls)
+      // console.log(foundUrls)
       let userRedirect = foundUrls[0];
-      if(userRedirect.protocol == 'https:' || userRedirect.protocol == 'http:'){
-        console.log(userRedirect.original_url);
         res.redirect(userRedirect.original_url);
-      }
     });
   });
 
