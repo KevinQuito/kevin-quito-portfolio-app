@@ -1,5 +1,3 @@
-var database_uri = 'mongodb+srv://KevinQuito:chipmunk1@cluster0.laogv.mongodb.net/Cluster0?retryWrites=true&w=majority'
-
 // server.js
 // where your node app starts
 
@@ -14,6 +12,8 @@ var port = process.env.PORT || 3000;
 // database for production app
 //  mongoose.connect(process.env.DB_URI);
 // database for local app
+/* Database Connection */
+database_uri = 'mongodb+srv://KevinQuito:<password>@cluster0.laogv.mongodb.net/dbname?retryWrites=true&w=majority'
   mongoose.connect(database_uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
 // enable CORS (https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
@@ -88,12 +88,12 @@ app.get("/api/:date_string", function(req, res){
 });
 // URL SHORTENER SERVICE
 // Note: A body parser makes it so that when someone posts a url to us, then we can receive it as a json Object
-
 // Build a schema and model to store saved URLS
 var ShortURL = mongoose.model('ShortURL', new mongoose.Schema({
   short_url: String,
   original_url: String,
-  suffix: String
+  suffix: String,
+  protocol: String
 }));
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false}));
@@ -105,38 +105,53 @@ app.use(bodyParser.json());
 // create user in req.body
 //})
 app.post("/api/shorturl/", (req,res) => {
-  console.log(req.body);
+  // console.log(req.body);
   if(!req.body.url.includes('http')){
     console.log("error");
       res.json({ error: 'invalid url' });
       return;
   }
   let client_requested_url = req.body.url;
+  // const httpRegex = /^(http|https)(:\/\/)/;
+  // if (!httpRegex.test(client_requested_url)) {return res.json({ error: 'invalid url' })}
+  const myURL = new URL(client_requested_url);
+console.log(myURL.protocol);
+  let protocol = myURL.protocol;
   let suffix = shortid.generate();
 
   let newURL = new ShortURL({
-    short_url: __dirname + "/api/shorturl/" + suffix,
+    short_url: suffix,
     original_url: client_requested_url,
-    suffix: suffix
+    suffix: suffix,
+    protocol: protocol
   });
+  // this will save it to our mongodb database
   newURL.save((err, doc) => {
     if(err) return console.log(err);
     res.json({ "saved" : true,
                "short_url" : newURL.short_url,
                "original_url" : newURL.original_url,
-               "suffix" : newURL.suffix
+               "suffix" : newURL.suffix,
+               "protocol" : newURL.protocol
     });
   });
 });
 app.get("/api/shorturl/:suffix", (req, res) => {
-
     let userGeneratedSuffix = req.params.suffix;
-
+    console.log("userGeneratedSuffix");
     ShortURL.find({suffix: userGeneratedSuffix}).then(foundUrls => {
-      let urlForRedirect = foundUrls[0];
-        res.redirect(urlForRedirect.original_url);
+      console.log(foundUrls)
+      let userRedirect = foundUrls[0];
+      if(userRedirect.protocol == 'https:' || userRedirect.protocol == 'http:'){
+        console.log(userRedirect.original_url);
+        res.redirect(userRedirect.original_url);
+      }
     });
   });
+
+
+
+
 // listen for requests :)
 var listener = app.listen(port, function () {
   console.log('Your app is listening on port ' + listener.address().port);
