@@ -71,26 +71,26 @@ app.get("/api/whoami", function(req, res){
 });
 // TIMESTAMP
 // The api endpoint is GET [project_url]/api/timestamp/:date_string
-app.get("/api/:date_string", function(req, res){
-  console.log(req); // shows all the data in a big json object including params
-
-  let dateString = req.params.date_string;
-  if(parseInt(dateString) > 10000){
-    let unixTime = new Date(parseInt(dateString));
-    res.json({"unix" : unixTime.getTime(),
-              "utc" : unixTime.toUTCString()
-            });
-  }
-  let passedInValue = new Date(dateString);
-  console.log(dateString, typeof dateString, Object.keys(dateString)); // This should give us a lot more information so we know what to do with the dateString object.
-  if(passedInValue == "Invalid Date"){
-    res.json({"error" : "Invalid Date" });
-  }else{
-    res.json({"unix" : passedInValue.getTime(),
-              "utc" : passedInValue.toUTCString()
-            });
-  }
-});
+// app.get("/api/:date_string", function(req, res){
+//   console.log(req); // shows all the data in a big json object including params
+//
+//   let dateString = req.params.date_string;
+//   if(parseInt(dateString) > 10000){
+//     let unixTime = new Date(parseInt(dateString));
+//     res.json({"unix" : unixTime.getTime(),
+//               "utc" : unixTime.toUTCString()
+//             });
+//   }
+//   let passedInValue = new Date(dateString);
+//   console.log(dateString, typeof dateString, Object.keys(dateString)); // This should give us a lot more information so we know what to do with the dateString object.
+//   if(passedInValue == "Invalid Date"){
+//     res.json({"error" : "Invalid Date" });
+//   }else{
+//     res.json({"unix" : passedInValue.getTime(),
+//               "utc" : passedInValue.toUTCString()
+//             });
+//   }
+// });
 // URL SHORTENER SERVICE
 // Note: A body parser makes it so that when someone posts a url to us, then we can receive it as a json Object
 // Build a schema and model to store saved URLS
@@ -155,26 +155,30 @@ var ExerciseUser = mongoose.model('ExerciseUser', new mongoose.Schema({
 }));
 
 app.post("/api/users", (req, res) => {
-  console.log(req.body)
+  // console.log(req.body)
   let mongooseGeneratedID = mongoose.Types.ObjectId();
-  console.log(mongooseGeneratedID, "<= mongooseGeneratedID")
-  let newExercise = new ExerciseUser({
+  // console.log(mongooseGeneratedID, "<= mongooseGeneratedID")
+  let exerciseUser = new ExerciseUser({
     username: req.body.username,
     _id: mongooseGeneratedID
   });
-  console.log(newExercise, " <= newExercise");
+  // console.log(newExercise, " <= newExercise");
 // this will save it to our mongodb database
-  newExercise.save((err, doc) => {
+  exerciseUser.save((err, doc) => {
     if(err) return console.log(err);
-    console.log("About to save newExercise")
+    // console.log("About to save newExercise")
     res.json({
-      "username": newExercise.username,
-      "_id": newExercise._id
+      "username": exerciseUser.username,
+      "_id": exerciseUser["_id"]
     });
   });
 });
 
-
+app.get("/api/users", (req, res) => {
+  ExerciseUser.find({}, (err, exerciseUsers) => {
+    res.json(exerciseUsers);
+  });
+  });
 
 // listen for requests :)
 var listener = app.listen(port, function () {
