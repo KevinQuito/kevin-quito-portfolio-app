@@ -30,6 +30,9 @@ app.get("/", function (req, res) {
 });
 
 // controller
+// These are where you set up the routes, so when the user clicks
+// on a link like Timestamp Microservices, Request Header Parser, or URL
+// Shortener Microservice, then it will take the user to that page
 app.get("/timestamp", function(req, res){
   res.sendFile(__dirname + '/views/timestamp.html');
 });
@@ -41,7 +44,9 @@ app.get("/requestHeaderParser", function(req, res){
 app.get("/urlShortenerMicroservice", function(req, res){
   res.sendFile(__dirname + '/views/urlShortenerMicroservice.html');
 });
-
+app.get("/exerciseTracker", function(req, res){
+  res.sendFile(__dirname + '/views/exerciseTracker.html');
+});
 // your first API endpoint...
 app.get("/api/hello", function (req, res) {
   res.json({greeting: 'hello API'});
@@ -143,6 +148,31 @@ app.get("/api/shorturl/:suffix", (req, res) => {
     });
   });
 
+// EXERCISE TRACKER
+var ExerciseUser = mongoose.model('ExerciseUser', new mongoose.Schema({
+  _id: String,
+  username: String
+}));
+
+app.post("/api/users", (req, res) => {
+  console.log(req.body)
+  let mongooseGeneratedID = mongoose.Types.ObjectId();
+  console.log(mongooseGeneratedID, "<= mongooseGeneratedID")
+  let newExercise = new ExerciseUser({
+    username: req.body.username,
+    _id: mongooseGeneratedID
+  });
+  console.log(newExercise, " <= newExercise");
+// this will save it to our mongodb database
+  newExercise.save((err, doc) => {
+    if(err) return console.log(err);
+    console.log("About to save newExercise")
+    res.json({
+      "username": newExercise.username,
+      "_id": newExercise._id
+    });
+  });
+});
 
 
 
