@@ -15,7 +15,7 @@ var port = process.env.PORT || 3000;
 //  mongoose.connect(process.env.DB_URI);
 // database for local app
 /* Database Connection */
-database_uri = ''
+database_uri = 'mongodb+srv://KevinQuito:chipmunk1@cluster0.laogv.mongodb.net/Cluster0?retryWrites=true&w=majority'
   mongoose.connect(database_uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
 // enable CORS (https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
@@ -78,26 +78,26 @@ app.get("/api/whoami", function(req, res){
 });
 // TIMESTAMP
 // The api endpoint is GET [project_url]/api/timestamp/:date_string
-app.get("/api/:date_string", function(req, res){
-  console.log(req); // shows all the data in a big json object including params
-
-  let dateString = req.params.date_string;
-  if(parseInt(dateString) > 10000){
-    let unixTime = new Date(parseInt(dateString));
-    res.json({"unix" : unixTime.getTime(),
-              "utc" : unixTime.toUTCString()
-            });
-  }
-  let passedInValue = new Date(dateString);
-  console.log(dateString, typeof dateString, Object.keys(dateString)); // This should give us a lot more information so we know what to do with the dateString object.
-  if(passedInValue == "Invalid Date"){
-    res.json({"error" : "Invalid Date" });
-  }else{
-    res.json({"unix" : passedInValue.getTime(),
-              "utc" : passedInValue.toUTCString()
-            });
-  }
-});
+// app.get("/api/:date_string", function(req, res){
+//   console.log(req); // shows all the data in a big json object including params
+//
+//   let dateString = req.params.date_string;
+//   if(parseInt(dateString) > 10000){
+//     let unixTime = new Date(parseInt(dateString));
+//     res.json({"unix" : unixTime.getTime(),
+//               "utc" : unixTime.toUTCString()
+//             });
+//   }
+//   let passedInValue = new Date(dateString);
+//   console.log(dateString, typeof dateString, Object.keys(dateString)); // This should give us a lot more information so we know what to do with the dateString object.
+//   if(passedInValue == "Invalid Date"){
+//     res.json({"error" : "Invalid Date" });
+//   }else{
+//     res.json({"unix" : passedInValue.getTime(),
+//               "utc" : passedInValue.toUTCString()
+//             });
+//   }
+// });
 // URL SHORTENER SERVICE
 // Note: A body parser makes it so that when someone posts a url to us, then we can receive it as a json Object
 // Build a schema and model to store saved URLS
@@ -157,44 +157,162 @@ app.get("/api/shorturl/:suffix", (req, res) => {
 
 // EXERCISE TRACKER
 // below are the schema models we are using
-var ExerciseUser = mongoose.model('ExerciseUser', new mongoose.Schema({
-  _id: String,
-  username: {type: String, required: true}
-}));
-var NewExercise = mongoose.model('NewExercise', new mongoose.Schema({
+// var ExerciseUser = mongoose.model('ExerciseUser', new mongoose.Schema({
+//   _id: String,
+//   username: {type: String, required: true}
+// }));
+// var NewExercise = mongoose.model('NewExercise', new mongoose.Schema({
+//   description: {type: String, required: true},
+//   duration: {type: Number, required: true},
+//   date: String
+// }));
+//
+// app.post("/api/users", (req, res) => {
+//   // console.log(req.body)
+//   let mongooseGeneratedID = mongoose.Types.ObjectId();
+//   // console.log(mongooseGeneratedID, "<= mongooseGeneratedID")
+//   let exerciseUser = new ExerciseUser({
+//     username: req.body.username,
+//     _id: mongooseGeneratedID
+//   });
+//   // console.log(newExercise, " <= newExercise");
+// // this will save it to our mongodb database
+//   exerciseUser.save((err, doc) => {
+//     if(err) return console.log(err);
+//     // console.log("About to save exerciseUser")
+//     res.json({
+//       "username": exerciseUser.username,
+//       "_id": exerciseUser["_id"]
+//     });
+//   });
+// });
+//
+// app.get("/api/users", (req, res) => {
+//   ExerciseUser.find({}, (err, exerciseUsers) => {
+//     res.json(exerciseUsers);
+//   });
+//   });
+// app.post("/api/users/:_id/exercises", (req, res) => {
+//
+// });
+let exerciseSessionSchema = new mongoose.Schema({
   description: {type: String, required: true},
   duration: {type: Number, required: true},
   date: String
-}));
-
-app.post("/api/users", (req, res) => {
-  // console.log(req.body)
-  let mongooseGeneratedID = mongoose.Types.ObjectId();
-  // console.log(mongooseGeneratedID, "<= mongooseGeneratedID")
-  let exerciseUser = new ExerciseUser({
-    username: req.body.username,
-    _id: mongooseGeneratedID
-  });
-  // console.log(newExercise, " <= newExercise");
-// this will save it to our mongodb database
-  exerciseUser.save((err, doc) => {
-    if(err) return console.log(err);
-    // console.log("About to save exerciseUser")
-    res.json({
-      "username": exerciseUser.username,
-      "_id": exerciseUser["_id"]
-    });
-  });
 });
+let userSchema = new mongoose.Schema({
+  username: {type: String, required: true},
+  log: [exerciseSessionSchema]
+});
+let Session = mongoose.model('Session', exerciseSessionSchema);
+let User = mongoose.model('User', userSchema);
 
+app.post("/api/users", bodyParser.urlencoded({extended:false}), (req, res)  =>{
+  // console.log(req.body);
+  let newUser = new User({username: req.body.username})
+  newUser.save((err, savedUser) => {
+    if(!err){
+      let responseObject = {};
+      responseObject['username'] = savedUser.username;  // this will be taken from the mongodb database
+      responseObject['_id'] = savedUser.id;
+      res.json(responseObject);
+    }
+  })
+});
 app.get("/api/users", (req, res) => {
-  ExerciseUser.find({}, (err, exerciseUsers) => {
-    res.json(exerciseUsers);
-  });
-  });
-app.post("/api/users/:_id/exercises", (req, res) => {
-
+  User.find({}, (err, arrayOfUsers) => {
+    if(!err){
+      res.json(arrayOfUsers);
+    }
+  })
 });
+app.post("/api/users/:_id/exercises", bodyParser.urlencoded({extended:false}), (req, res)  =>{
+    // console.log(req.body)
+    let newSession = new Session({
+      description: req.body.description,
+      duration: parseInt(req.body.duration),
+      date: req.body.date
+    });
+    // console.log(newSession.date, "before")
+    if(newSession.date === undefined || newSession.date === ''){
+      var today = new Date();
+      var dd = String(today.getDate()).padStart(2, '0');
+      var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+      var yyyy = today.getFullYear();
+
+      today = yyyy + '/' + mm + '/' + dd;
+      newSession.date = today;
+      // console.log(newSession.date, "after")
+    }else{
+      var parts = newSession.date.split('-');
+      var yyyy = parseInt(parts[0]);
+      var mm = parseInt(parts[1]);
+      var dd = parseInt(parts[2])
+
+      date = yyyy + '/' + mm + '/' + dd;
+      newSession.date = date;
+      // console.log(newSession.date, "test")
+    }
+    User.findByIdAndUpdate(
+      req.params._id,
+      {$push: {log: newSession}},
+      {new: true},
+      (err, updatedUser) => {
+        if(!err){
+        let responseObject = {};
+        // console.log(newSession.date)
+        responseObject['_id'] = updatedUser.id;
+        responseObject['username'] = updatedUser.username;
+        responseObject['date'] = new Date(newSession.date).toDateString();
+        responseObject['description'] = newSession.description;
+        responseObject['duration'] = newSession.duration;
+        // console.log(responseObject);
+        res.json(responseObject);
+        }
+      }
+    )
+});
+app.get("/api/users/:_id/logs", (req, res) => {
+  inputID = req.params._id;
+  // console.log(inputID);
+  User.findById(inputID, (err, result) => {
+    let responseObj = {...result._doc};
+    // console.log(responseObj)
+    if(err) {
+      res.json({error: err});
+    } else {
+
+      if(req.query.from || req.query.to){
+        let fromDate = new Date(0);
+        let toDate = new Date();
+
+        if(req.query.from){
+          fromDate = new Date(req.query.from);
+        }
+        if(req.query.to){
+          toDate = new Date(req.query.to);
+        }
+        // in order to compare we need to use unix timestamps so .getTime() will convert it to a unix timestamp
+        fromDate = fromDate.getTime();
+        toDate = toDate.getTime();
+
+        responseObj.log = responseObj.log.filter((session) => {
+          let sessionDate = new Date(session.date).getTime();
+
+          return sessionDate >= fromDate && sessionDate <= toDate
+        });
+      }
+      if(req.query.limit){
+        responseObj.log = responseObj.log.slice(0, req.query.limit);
+      }
+      
+      responseObj['count'] = result.log.length
+      res.json(responseObj);
+      // console.log(responseObj);
+    }
+  })
+});
+
 
 // FILE METADATA
 // use multer to look into the upfile input that was in the fileMetada.html form and
