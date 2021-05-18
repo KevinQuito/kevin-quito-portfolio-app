@@ -15,7 +15,7 @@ var port = process.env.PORT || 3000;
 //  mongoose.connect(process.env.DB_URI);
 // database for local app
 /* Database Connection */
-database_uri = 'mongodb+srv://KevinQuito:chipmunk1@cluster0.laogv.mongodb.net/Cluster0?retryWrites=true&w=majority'
+database_uri = ''
   mongoose.connect(database_uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
 // enable CORS (https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
