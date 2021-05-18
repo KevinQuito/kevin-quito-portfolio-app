@@ -78,26 +78,26 @@ app.get("/api/whoami", function(req, res){
 });
 // TIMESTAMP
 // The api endpoint is GET [project_url]/api/timestamp/:date_string
-// app.get("/api/:date_string", function(req, res){
-//   console.log(req); // shows all the data in a big json object including params
-//
-//   let dateString = req.params.date_string;
-//   if(parseInt(dateString) > 10000){
-//     let unixTime = new Date(parseInt(dateString));
-//     res.json({"unix" : unixTime.getTime(),
-//               "utc" : unixTime.toUTCString()
-//             });
-//   }
-//   let passedInValue = new Date(dateString);
-//   console.log(dateString, typeof dateString, Object.keys(dateString)); // This should give us a lot more information so we know what to do with the dateString object.
-//   if(passedInValue == "Invalid Date"){
-//     res.json({"error" : "Invalid Date" });
-//   }else{
-//     res.json({"unix" : passedInValue.getTime(),
-//               "utc" : passedInValue.toUTCString()
-//             });
-//   }
-// });
+app.get("/api/:date_string", function(req, res){
+  console.log(req); // shows all the data in a big json object including params
+
+  let dateString = req.params.date_string;
+  if(parseInt(dateString) > 10000){
+    let unixTime = new Date(parseInt(dateString));
+    res.json({"unix" : unixTime.getTime(),
+              "utc" : unixTime.toUTCString()
+            });
+  }
+  let passedInValue = new Date(dateString);
+  console.log(dateString, typeof dateString, Object.keys(dateString)); // This should give us a lot more information so we know what to do with the dateString object.
+  if(passedInValue == "Invalid Date"){
+    res.json({"error" : "Invalid Date" });
+  }else{
+    res.json({"unix" : passedInValue.getTime(),
+              "utc" : passedInValue.toUTCString()
+            });
+  }
+});
 // URL SHORTENER SERVICE
 // Note: A body parser makes it so that when someone posts a url to us, then we can receive it as a json Object
 // Build a schema and model to store saved URLS
