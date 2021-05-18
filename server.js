@@ -305,7 +305,7 @@ app.get("/api/users/:_id/logs", (req, res) => {
       if(req.query.limit){
         responseObj.log = responseObj.log.slice(0, req.query.limit);
       }
-      
+
       responseObj['count'] = result.log.length
       res.json(responseObj);
       // console.log(responseObj);
