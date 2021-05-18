@@ -7,6 +7,8 @@ var mongo = require('mongodb');
 var mongoose = require('mongoose');
 var bodyParser = require('body-parser');
 var shortid = require('shortid');
+var multer = require('multer');
+var upload = multer({ dest: 'uploads/' });
 var app = express();
 var port = process.env.PORT || 3000;
 // database for production app
@@ -44,9 +46,14 @@ app.get("/requestHeaderParser", function(req, res){
 app.get("/urlShortenerMicroservice", function(req, res){
   res.sendFile(__dirname + '/views/urlShortenerMicroservice.html');
 });
+
 app.get("/exerciseTracker", function(req, res){
   res.sendFile(__dirname + '/views/exerciseTracker.html');
 });
+
+app.get("/fileMetadata", function(req, res){
+  res.sendFile(__dirname + '/views/fileMetadata.html');
+})
 // your first API endpoint...
 app.get("/api/hello", function (req, res) {
   res.json({greeting: 'hello API'});
@@ -71,26 +78,26 @@ app.get("/api/whoami", function(req, res){
 });
 // TIMESTAMP
 // The api endpoint is GET [project_url]/api/timestamp/:date_string
-// app.get("/api/:date_string", function(req, res){
-//   console.log(req); // shows all the data in a big json object including params
-//
-//   let dateString = req.params.date_string;
-//   if(parseInt(dateString) > 10000){
-//     let unixTime = new Date(parseInt(dateString));
-//     res.json({"unix" : unixTime.getTime(),
-//               "utc" : unixTime.toUTCString()
-//             });
-//   }
-//   let passedInValue = new Date(dateString);
-//   console.log(dateString, typeof dateString, Object.keys(dateString)); // This should give us a lot more information so we know what to do with the dateString object.
-//   if(passedInValue == "Invalid Date"){
-//     res.json({"error" : "Invalid Date" });
-//   }else{
-//     res.json({"unix" : passedInValue.getTime(),
-//               "utc" : passedInValue.toUTCString()
-//             });
-//   }
-// });
+app.get("/api/:date_string", function(req, res){
+  console.log(req); // shows all the data in a big json object including params
+
+  let dateString = req.params.date_string;
+  if(parseInt(dateString) > 10000){
+    let unixTime = new Date(parseInt(dateString));
+    res.json({"unix" : unixTime.getTime(),
+              "utc" : unixTime.toUTCString()
+            });
+  }
+  let passedInValue = new Date(dateString);
+  console.log(dateString, typeof dateString, Object.keys(dateString)); // This should give us a lot more information so we know what to do with the dateString object.
+  if(passedInValue == "Invalid Date"){
+    res.json({"error" : "Invalid Date" });
+  }else{
+    res.json({"unix" : passedInValue.getTime(),
+              "utc" : passedInValue.toUTCString()
+            });
+  }
+});
 // URL SHORTENER SERVICE
 // Note: A body parser makes it so that when someone posts a url to us, then we can receive it as a json Object
 // Build a schema and model to store saved URLS
@@ -117,7 +124,7 @@ app.post("/api/shorturl/", (req,res) => {
       return;
   }
   let client_requested_url = req.body.url;
-  const myURL = new URL(client_requested_url);
+  const myURL = new URL(client_requested_url);  // node.js URL
 console.log(myURL.protocol);
   let protocol = myURL.protocol;
   let suffix = shortid.generate();
@@ -149,9 +156,15 @@ app.get("/api/shorturl/:suffix", (req, res) => {
   });
 
 // EXERCISE TRACKER
+// below are the schema models we are using
 var ExerciseUser = mongoose.model('ExerciseUser', new mongoose.Schema({
   _id: String,
-  username: String
+  username: {type: String, required: true}
+}));
+var NewExercise = mongoose.model('NewExercise', new mongoose.Schema({
+  description: {type: String, required: true},
+  duration: {type: Number, required: true},
+  date: String
 }));
 
 app.post("/api/users", (req, res) => {
@@ -166,7 +179,7 @@ app.post("/api/users", (req, res) => {
 // this will save it to our mongodb database
   exerciseUser.save((err, doc) => {
     if(err) return console.log(err);
-    // console.log("About to save newExercise")
+    // console.log("About to save exerciseUser")
     res.json({
       "username": exerciseUser.username,
       "_id": exerciseUser["_id"]
@@ -179,6 +192,37 @@ app.get("/api/users", (req, res) => {
     res.json(exerciseUsers);
   });
   });
+app.post("/api/users/:_id/exercises", (req, res) => {
+
+});
+
+// FILE METADATA
+// use multer to look into the upfile input that was in the fileMetada.html form and
+// picked out the file that was attached to it that was in the html form uploader. then
+// it put that file into the buff field in the req.file
+var FileInfo = mongoose.model('FileInfo', new mongoose.Schema({
+  name: String,
+  type: String,
+  size: Number
+}));
+
+app.post("/api/fileanalyse", upload.single("upfile"), (req, res) => {
+  console.log(req.file);
+  let newFile = new FileInfo({
+    name: req.file.originalname,
+    type: req.file.mimetype,
+    size: req.file.size
+  });
+  newFile.save((err, doc) => {
+    if(err) return console.log(err);
+    console.log(newFile)
+    res.json({
+               "name" : newFile.name,
+               "type" : newFile.type,
+               "size" : newFile.size
+    });
+  });
+});
 
 // listen for requests :)
 var listener = app.listen(port, function () {
